@@ -17,7 +17,7 @@ type CategoryTabsProps = {
 
 export function CategoryTabs({ value, onChange }: CategoryTabsProps) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2 sm:gap-3">
       {tabs.map((tab) => {
         const active = tab.key === value
         return (

@@ -12,7 +12,7 @@ export function FeaturedNews({ items }: FeaturedNewsProps) {
   if (!featured.length) return null
 
   return (
-    <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <section className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3 lg:gap-6">
       {featured.map((item, index) => (
         <a
           key={item.id}

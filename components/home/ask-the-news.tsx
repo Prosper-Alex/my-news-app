@@ -46,14 +46,14 @@ export function AskTheNews({ onAsk }: AskTheNewsProps) {
   const [value, setValue] = useState("")
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-md">
+    <section className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-md sm:p-6">
       <div className="text-sm font-semibold text-white">Ask the news</div>
       <p className="mt-1 text-sm text-zinc-300">
         Ask a question. We’ll turn it into a search and fetch matching headlines.
       </p>
 
       <form
-        className="mt-4 flex flex-col gap-3 sm:flex-row"
+        className="mt-4 flex flex-col gap-3 sm:flex-row sm:gap-4"
         onSubmit={(e) => {
           e.preventDefault()
           const q = questionToQuery(value.trim())
@@ -76,4 +76,3 @@ export function AskTheNews({ onAsk }: AskTheNewsProps) {
     </section>
   )
 }
-

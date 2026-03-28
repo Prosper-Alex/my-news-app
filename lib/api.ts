@@ -107,5 +107,8 @@ export async function fetchTopHeadlines({
   if (!todayOnly) return items;
 
   const todayItems = items.filter((item) => isTodayUtc(item.publishedAt));
+  console.log(
+    `Fetched ${items.length} articles, ${todayItems.length} published today.`,
+  );
   return todayItems.length ? todayItems : items;
 }

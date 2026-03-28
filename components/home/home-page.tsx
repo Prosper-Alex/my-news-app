@@ -12,6 +12,7 @@ import { AskTheNews } from "@/components/home/ask-the-news"
 import { NewsGrid } from "@/components/news/news-grid"
 import { EmptyState } from "@/components/ui/empty-state"
 import { SkeletonLoader } from "@/components/ui/skeleton-loader"
+import { Pagination } from "@/components/ui/pagination"
 
 function extractTopics(items: NewsItem[]): string[] {
   const stop = new Set([
@@ -69,6 +70,7 @@ export function HomePage({ initialItems }: HomePageProps) {
   )
   const [category, setCategory] = useState<NewsCategory>("all")
   const [refreshKey, setRefreshKey] = useState(0)
+  const [page, setPage] = useState(1)
 
   const country = category === "local" ? "ng" : "us"
   const apiCategory = category === "local" ? "all" : category
@@ -89,6 +91,14 @@ export function HomePage({ initialItems }: HomePageProps) {
 
   const topics = useMemo(() => extractTopics(items), [items])
 
+  const pageSize = 15
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize))
+  const currentPage = Math.min(Math.max(1, page), totalPages)
+  const pageStart = (currentPage - 1) * pageSize
+  const pageItems = items.slice(pageStart, pageStart + pageSize)
+  const rangeStart = items.length ? pageStart + 1 : 0
+  const rangeEnd = Math.min(pageStart + pageSize, items.length)
+
   return (
     <div className="min-h-full bg-[radial-gradient(1200px_circle_at_20%_-10%,rgba(56,189,248,0.25),transparent_45%),radial-gradient(1000px_circle_at_80%_0%,rgba(168,85,247,0.22),transparent_45%),radial-gradient(900px_circle_at_40%_100%,rgba(16,185,129,0.16),transparent_45%)] bg-black text-white">
       <Navbar
@@ -97,16 +107,18 @@ export function HomePage({ initialItems }: HomePageProps) {
         onSearch={() => {
           const trimmed = query.trim()
           setSubmittedQuery(trimmed ? trimmed : undefined)
+          setPage(1)
         }}
         onClear={() => {
           setQuery("")
           setSubmittedQuery(undefined)
+          setPage(1)
         }}
       />
 
-      <main className="mx-auto w-full max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-6">
+      <main className="mx-auto w-full max-w-screen-xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-12">
+          <div className="space-y-6 lg:space-y-8">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <h1 className="text-3xl font-semibold tracking-tight">
@@ -125,6 +137,7 @@ export function HomePage({ initialItems }: HomePageProps) {
                 setCategory("all")
                 setQuery(q)
                 setSubmittedQuery(q)
+                setPage(1)
               }}
             />
 
@@ -135,6 +148,7 @@ export function HomePage({ initialItems }: HomePageProps) {
                   setCategory(next)
                   setSubmittedQuery(undefined)
                   setQuery("")
+                  setPage(1)
                 }}
               />
               {submittedQuery ? (
@@ -151,7 +165,9 @@ export function HomePage({ initialItems }: HomePageProps) {
               )}
             </div>
 
-            {state.status === "loading" && !state.data ? <SkeletonLoader /> : null}
+            {state.status === "loading" && !state.data ? (
+              <SkeletonLoader count={pageSize} />
+            ) : null}
 
             {state.status === "error" && !state.data ? (
               <EmptyState
@@ -160,7 +176,10 @@ export function HomePage({ initialItems }: HomePageProps) {
                 action={
                   <button
                     type="button"
-                    onClick={() => setRefreshKey((k) => k + 1)}
+                    onClick={() => {
+                      setPage(1)
+                      setRefreshKey((k) => k + 1)
+                    }}
                     className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200"
                   >
                     Retry
@@ -176,7 +195,31 @@ export function HomePage({ initialItems }: HomePageProps) {
               />
             ) : null}
 
-            {state.data?.length ? <NewsGrid items={state.data} /> : null}
+            {state.data?.length ? (
+              <div className="space-y-6">
+                <NewsGrid items={pageItems} />
+
+                {items.length > pageSize ? (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="text-sm text-zinc-400">
+                      Showing{" "}
+                      <span className="font-semibold text-white">
+                        {rangeStart}–{rangeEnd}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-semibold text-white">
+                        {items.length}
+                      </span>
+                    </div>
+                    <Pagination
+                      page={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={setPage}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
           <Sidebar
@@ -184,6 +227,7 @@ export function HomePage({ initialItems }: HomePageProps) {
             onTopicClick={(topic) => {
               setQuery(topic)
               setSubmittedQuery(topic)
+              setPage(1)
             }}
           />
         </div>

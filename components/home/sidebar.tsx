@@ -15,8 +15,8 @@ export function Sidebar({ topics, onTopicClick }: SidebarProps) {
 
   return (
     <aside className="hidden lg:block">
-      <div className="sticky top-20 space-y-4">
-        <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-200 backdrop-blur-md">
+      <div className="sticky top-24 space-y-5">
+        <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-200 backdrop-blur-md xl:p-6">
           <div className="text-base font-semibold text-white">Trending topics</div>
           <div className="mt-3 flex flex-wrap gap-2">
             {topics.length ? (
@@ -36,7 +36,7 @@ export function Sidebar({ topics, onTopicClick }: SidebarProps) {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-200 backdrop-blur-md">
+        <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-200 backdrop-blur-md xl:p-6">
           <div className="text-base font-semibold text-white">Saved</div>
           {bookmarks.state.status === "error" ? (
             <div className="mt-2 text-zinc-300">{bookmarks.state.error}</div>
@@ -71,7 +71,7 @@ export function Sidebar({ topics, onTopicClick }: SidebarProps) {
           )}
         </section>
 
-        <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-200 backdrop-blur-md">
+        <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-200 backdrop-blur-md xl:p-6">
           <div className="text-base font-semibold text-white">Suggested</div>
           <ul className="mt-3 space-y-2 text-zinc-300">
             <li>Technology</li>

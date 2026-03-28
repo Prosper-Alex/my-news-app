@@ -1,7 +1,9 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 import type { NewsCategory, NewsItem } from "@/types/news"
+import { api, getApiErrorMessage } from "@/lib/client/api"
 
 type UseNewsState =
   | { status: "loading"; data: NewsItem[] | null; error: null }
@@ -24,61 +26,64 @@ export function useNews({
   todayOnly = true,
   initialData,
   refreshKey,
-}: UseNewsParams) {
-  const [state, setState] = useState<UseNewsState>(() =>
-    initialData?.length
-      ? { status: "success", data: initialData, error: null }
-      : { status: "loading", data: null, error: null },
+}: UseNewsParams): UseNewsState {
+  const trimmedQuery = query?.trim() || ""
+  const apiCategory =
+    category && category !== "all" && category !== "local" ? category : ""
+
+  const params = useMemo(() => {
+    const next: Record<string, string> = {
+      country,
+      today: todayOnly ? "1" : "0",
+    }
+    if (trimmedQuery) next.q = trimmedQuery
+    if (apiCategory) next.category = apiCategory
+    return next
+  }, [apiCategory, country, todayOnly, trimmedQuery])
+
+  const queryKey = useMemo(
+    () => ["news", country, todayOnly ? 1 : 0, trimmedQuery, apiCategory] as const,
+    [apiCategory, country, todayOnly, trimmedQuery],
   )
 
-  const didHydrate = useRef(false)
+  const staleTime =
+    trimmedQuery || apiCategory ? 60 * 1000 : 5 * 60 * 1000
 
-  const url = useMemo(() => {
-    const params = new URLSearchParams()
-    params.set("country", country)
-    params.set("today", todayOnly ? "1" : "0")
-    if (query?.trim()) params.set("q", query.trim())
-    if (category && category !== "all" && category !== "local") {
-      params.set("category", category)
-    }
-    return `/api/news?${params.toString()}`
-  }, [category, country, query, todayOnly])
+  const res = useQuery({
+    queryKey,
+    queryFn: async () => {
+      try {
+        const response = await api.get<{ items: NewsItem[] }>("/news", {
+          params,
+        })
+        return response.data.items
+      } catch (err) {
+        throw new Error(getApiErrorMessage(err))
+      }
+    },
+    initialData: initialData?.length ? initialData : undefined,
+    staleTime,
+  })
+
+  const refetch = res.refetch
 
   useEffect(() => {
-    // If we rendered with initialData, avoid a duplicate fetch on first paint.
-    if (!didHydrate.current) {
-      didHydrate.current = true
-      if (initialData?.length) return
-    }
+    if (!refreshKey) return
+    void refetch()
+  }, [refreshKey, refetch])
 
-    const controller = new AbortController()
+  if (res.isPending) {
+    return { status: "loading", data: null, error: null }
+  }
 
-    async function run() {
-      setState((prev) => ({ status: "loading", data: prev.data, error: null }))
+  if (res.isError) {
+    const message = res.error instanceof Error ? res.error.message : "Unknown error"
+    return { status: "error", data: res.data ?? null, error: message }
+  }
 
-      try {
-        const res = await fetch(url, { signal: controller.signal })
-        const payload = (await res.json()) as
-          | { items: NewsItem[] }
-          | { error: string }
-
-        if (!res.ok || "error" in payload) {
-          throw new Error(
-            "error" in payload ? payload.error : `Request failed (${res.status})`,
-          )
-        }
-
-        setState({ status: "success", data: payload.items, error: null })
-      } catch (err) {
-        if (controller.signal.aborted) return
-        const message = err instanceof Error ? err.message : "Unknown error"
-        setState((prev) => ({ status: "error", data: prev.data, error: message }))
-      }
-    }
-
-    run()
-    return () => controller.abort()
-  }, [url, initialData, refreshKey])
-
-  return state
+  return {
+    status: res.fetchStatus === "fetching" ? "loading" : "success",
+    data: res.data,
+    error: null,
+  }
 }

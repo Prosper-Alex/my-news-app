@@ -11,7 +11,7 @@ cp .env.example .env.local
 2) Run the dev server:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -29,7 +29,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 2) Run migrations + generate Prisma client:
 
 ```bash
-npx prisma migrate dev
+pnpm prisma:migrate
 ```
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

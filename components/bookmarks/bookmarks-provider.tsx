@@ -4,12 +4,12 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
 } from "react"
 import { useSession } from "next-auth/react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type { Bookmark, CreateBookmarkInput } from "@/types/bookmarks"
+import { api, getApiErrorMessage } from "@/lib/client/api"
 
 type BookmarksState =
   | { status: "idle"; items: Bookmark[]; error: null }
@@ -29,99 +29,120 @@ const BookmarksContext = createContext<BookmarksContextValue | null>(null)
 
 export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   const { status } = useSession()
-  const [state, setState] = useState<BookmarksState>({
-    status: "idle",
-    items: [],
-    error: null,
+  const queryClient = useQueryClient()
+  const enabled = status === "authenticated"
+
+  const bookmarksQuery = useQuery({
+    queryKey: ["bookmarks"] as const,
+    enabled,
+    queryFn: async () => {
+      try {
+        const res = await api.get<{ items: Bookmark[] }>("/bookmarks")
+        return res.data.items
+      } catch (err) {
+        throw new Error(getApiErrorMessage(err))
+      }
+    },
+    staleTime: 0,
   })
 
-  const refresh = useCallback(async () => {
-    if (status !== "authenticated") {
-      setState({ status: "idle", items: [], error: null })
-      return
-    }
-
-    setState((prev) => ({ status: "loading", items: prev.items, error: null }))
-    try {
-      const res = await fetch("/api/bookmarks", { cache: "no-store" })
-      const payload = (await res.json()) as
-        | { items: Bookmark[] }
-        | { error: string }
-      if (!res.ok || "error" in payload) {
-        throw new Error(
-          "error" in payload ? payload.error : `Request failed (${res.status})`,
-        )
+  const addMutation = useMutation({
+    mutationFn: async (input: CreateBookmarkInput) => {
+      try {
+        const res = await api.post<{ item: Bookmark }>("/bookmarks", input)
+        return res.data.item
+      } catch (err) {
+        throw new Error(getApiErrorMessage(err))
       }
-      setState({ status: "ready", items: payload.items, error: null })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error"
-      setState((prev) => ({ status: "error", items: prev.items, error: message }))
-    }
-  }, [status])
+    },
+    onSuccess: (item) => {
+      queryClient.setQueryData(["bookmarks"], (prev: Bookmark[] | undefined) => {
+        const nextItems = [item, ...(prev ?? [])].filter(
+          (b, i, arr) => arr.findIndex((x) => x.articleUrl === b.articleUrl) === i,
+        )
+        return nextItems
+      })
+    },
+  })
 
-  useEffect(() => {
-    refresh()
-  }, [refresh])
+  const removeMutation = useMutation({
+    mutationFn: async (articleUrl: string) => {
+      try {
+        await api.delete("/bookmarks", {
+          data: { articleUrl },
+        })
+      } catch (err) {
+        throw new Error(getApiErrorMessage(err))
+      }
+    },
+    onSuccess: (_data, articleUrl) => {
+      queryClient.setQueryData(["bookmarks"], (prev: Bookmark[] | undefined) =>
+        (prev ?? []).filter((b) => b.articleUrl !== articleUrl),
+      )
+    },
+  })
 
   const isBookmarked = useCallback(
-    (articleUrl: string) => state.items.some((b) => b.articleUrl === articleUrl),
-    [state.items],
+    (articleUrl: string) =>
+      (bookmarksQuery.data ?? []).some((b) => b.articleUrl === articleUrl),
+    [bookmarksQuery.data],
   )
 
   const add = useCallback(
     async (input: CreateBookmarkInput) => {
-      if (status !== "authenticated") return
-
-      const res = await fetch("/api/bookmarks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
-      })
-      const payload = (await res.json()) as
-        | { item: Bookmark }
-        | { error: string }
-
-      if (!res.ok || "error" in payload) {
-        throw new Error(
-          "error" in payload ? payload.error : `Request failed (${res.status})`,
-        )
-      }
-
-      setState((prev) => {
-        const nextItems = [payload.item, ...prev.items].filter(
-          (b, i, arr) => arr.findIndex((x) => x.articleUrl === b.articleUrl) === i,
-        )
-        return { status: "ready", items: nextItems, error: null }
-      })
+      if (!enabled) return
+      await addMutation.mutateAsync(input)
     },
-    [status],
+    [addMutation, enabled],
   )
 
   const remove = useCallback(
     async (articleUrl: string) => {
-      if (status !== "authenticated") return
-
-      const res = await fetch("/api/bookmarks", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ articleUrl }),
-      })
-      const payload = (await res.json()) as { ok: true } | { error: string }
-
-      if (!res.ok || "error" in payload) {
-        throw new Error(
-          "error" in payload ? payload.error : `Request failed (${res.status})`,
-        )
-      }
-
-      setState((prev) => ({
-        status: "ready",
-        items: prev.items.filter((b) => b.articleUrl !== articleUrl),
-        error: null,
-      }))
+      if (!enabled) return
+      await removeMutation.mutateAsync(articleUrl)
     },
-    [status],
+    [enabled, removeMutation],
   )
+
+  const refresh = useCallback(async () => {
+    if (!enabled) return
+    await bookmarksQuery.refetch()
+  }, [bookmarksQuery, enabled])
+
+  const state = useMemo<BookmarksState>(() => {
+    if (!enabled) {
+      return { status: "idle", items: [], error: null }
+    }
+
+    const items = bookmarksQuery.data ?? []
+    const busy =
+      bookmarksQuery.fetchStatus === "fetching" ||
+      addMutation.isPending ||
+      removeMutation.isPending
+
+    if (bookmarksQuery.isError) {
+      const message =
+        bookmarksQuery.error instanceof Error
+          ? bookmarksQuery.error.message
+          : "Unknown error"
+      return { status: "error", items, error: message }
+    }
+
+    if (bookmarksQuery.isPending || busy) {
+      return { status: "loading", items, error: null }
+    }
+
+    return { status: "ready", items, error: null }
+  }, [
+    addMutation.isPending,
+    bookmarksQuery.data,
+    bookmarksQuery.error,
+    bookmarksQuery.fetchStatus,
+    bookmarksQuery.isError,
+    bookmarksQuery.isPending,
+    enabled,
+    removeMutation.isPending,
+  ])
 
   const value = useMemo<BookmarksContextValue>(
     () => ({ state, isBookmarked, refresh, add, remove }),
@@ -140,4 +161,3 @@ export function useBookmarks() {
   if (!ctx) throw new Error("useBookmarks must be used within BookmarksProvider")
   return ctx
 }
-
