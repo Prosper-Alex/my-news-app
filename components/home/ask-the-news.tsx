@@ -1,0 +1,79 @@
+"use client"
+
+import { useState } from "react"
+
+function questionToQuery(question: string): string {
+  const stop = new Set([
+    "what",
+    "whats",
+    "what's",
+    "happening",
+    "in",
+    "on",
+    "at",
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "to",
+    "for",
+    "of",
+    "about",
+    "today",
+    "latest",
+    "news",
+    "please",
+    "show",
+    "me",
+  ])
+
+  const tokens = question
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter((t) => t.length > 2 && !stop.has(t))
+
+  return tokens.slice(0, 6).join(" ")
+}
+
+type AskTheNewsProps = {
+  onAsk: (query: string) => void
+}
+
+export function AskTheNews({ onAsk }: AskTheNewsProps) {
+  const [value, setValue] = useState("")
+
+  return (
+    <section className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-md">
+      <div className="text-sm font-semibold text-white">Ask the news</div>
+      <p className="mt-1 text-sm text-zinc-300">
+        Ask a question. We’ll turn it into a search and fetch matching headlines.
+      </p>
+
+      <form
+        className="mt-4 flex flex-col gap-3 sm:flex-row"
+        onSubmit={(e) => {
+          e.preventDefault()
+          const q = questionToQuery(value.trim())
+          if (q) onAsk(q)
+        }}
+      >
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="“What’s happening in Nigeria today?”"
+          className="h-11 w-full flex-1 rounded-2xl border border-white/10 bg-black/30 px-4 text-sm text-white shadow-sm outline-none backdrop-blur-md placeholder:text-zinc-400 focus:ring-2 focus:ring-white/30"
+        />
+        <button
+          type="submit"
+          className="h-11 shrink-0 rounded-2xl bg-white px-5 text-sm font-semibold text-black shadow-sm hover:bg-zinc-200"
+        >
+          Ask
+        </button>
+      </form>
+    </section>
+  )
+}
+

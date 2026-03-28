@@ -1,22 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Production-ready news SaaS starter built with Next.js (App Router), TypeScript, and Tailwind CSS.
 
 ## Getting Started
 
-First, run the development server:
+1) Create env file:
+
+```bash
+cp .env.example .env.local
+```
+
+2) Run the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Notes
+
+- News is fetched server-side in `app/api/news/route.ts` using `NEWS_API_KEY` (kept out of the browser).
+- Auth is scaffolded with NextAuth in `app/api/auth/[...nextauth]/route.ts` (GitHub provider).
+- Bookmarks use Prisma + PostgreSQL via `DATABASE_URL` and the `/api/bookmarks` route.
+
+## Database (Bookmarks)
+
+1) Set `DATABASE_URL` in `.env.local` (PostgreSQL).
+
+2) Run migrations + generate Prisma client:
+
+```bash
+npx prisma migrate dev
+```
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
