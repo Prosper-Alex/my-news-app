@@ -1,7 +1,9 @@
 "use client"
 
+import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { useBookmarks } from "@/components/bookmarks/bookmarks-provider"
+import { createStoryHref } from "@/lib/news-utils"
 
 type SidebarProps = {
   topics: string[]
@@ -50,17 +52,21 @@ export function Sidebar({ topics, onTopicClick }: SidebarProps) {
             <ul className="mt-3 space-y-3">
               {saved.map((b) => (
                 <li key={b.id} className="text-sm">
-                  <a
-                    href={b.articleUrl}
-                    target="_blank"
-                    rel="noreferrer"
+                  <Link
+                    href={createStoryHref({
+                      title: b.title,
+                      url: b.articleUrl,
+                      imageUrl: b.imageUrl,
+                      sourceName: b.sourceName,
+                      publishedAt: b.publishedAt,
+                    })}
                     className="block text-zinc-200 hover:text-white"
                   >
                     <div className="font-semibold">{b.title}</div>
                     <div className="mt-1 text-xs text-zinc-400">
                       {b.sourceName ?? "Saved"}
                     </div>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -72,12 +78,28 @@ export function Sidebar({ topics, onTopicClick }: SidebarProps) {
         </section>
 
         <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-200 backdrop-blur-md xl:p-6">
-          <div className="text-base font-semibold text-white">Suggested</div>
+          <div className="text-base font-semibold text-white">Explore</div>
           <ul className="mt-3 space-y-2 text-zinc-300">
-            <li>Technology</li>
-            <li>Business</li>
-            <li>Sports</li>
-            <li>Local</li>
+            <li>
+              <Link href="/discover?category=technology" className="hover:text-white">
+                Technology briefings
+              </Link>
+            </li>
+            <li>
+              <Link href="/discover?category=business" className="hover:text-white">
+                Business desk
+              </Link>
+            </li>
+            <li>
+              <Link href="/discover?category=sports" className="hover:text-white">
+                Sports watch
+              </Link>
+            </li>
+            <li>
+              <Link href="/saved" className="hover:text-white">
+                Saved reading list
+              </Link>
+            </li>
           </ul>
         </section>
       </div>

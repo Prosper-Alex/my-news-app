@@ -14,8 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MyNews — Trending News",
-  description: "A production-ready news SaaS starter built with Next.js.",
+  title: {
+    default: "MyNews",
+    template: "%s | MyNews",
+  },
+  description:
+    "Modern headline briefings with discover pages, saved stories, and richer article context.",
 };
 
 export default function RootLayout({
@@ -29,7 +33,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

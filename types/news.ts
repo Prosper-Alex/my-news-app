@@ -29,7 +29,12 @@ export type NewsItem = {
   url: string
   imageUrl: string | null
   sourceName: string
+  sourceId: string | null
+  sourceDomain: string
+  author: string | null
+  content: string | null
   publishedAt: string
+  readTimeMinutes: number
 }
 
 export type NewsCategory =

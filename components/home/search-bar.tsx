@@ -46,6 +46,7 @@ export function SearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        aria-label="Search news"
         className="h-11 w-full rounded-2xl border border-white/10 bg-black/30 pl-11 pr-24 text-sm text-white shadow-sm outline-none ring-offset-2 backdrop-blur-md placeholder:text-zinc-400 focus:ring-2 focus:ring-white/30"
       />
 
@@ -62,4 +63,3 @@ export function SearchBar({
     </form>
   )
 }
-

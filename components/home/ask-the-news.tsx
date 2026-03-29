@@ -2,6 +2,12 @@
 
 import { useState } from "react"
 
+const suggestedQuestions = [
+  "What is happening in Nigeria today?",
+  "Show me the latest AI and startup headlines",
+  "What are the biggest sports stories right now?",
+]
+
 function questionToQuery(question: string): string {
   const stop = new Set([
     "what",
@@ -64,6 +70,7 @@ export function AskTheNews({ onAsk }: AskTheNewsProps) {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="“What’s happening in Nigeria today?”"
+          aria-label="Ask the news"
           className="h-11 w-full flex-1 rounded-2xl border border-white/10 bg-black/30 px-4 text-sm text-white shadow-sm outline-none backdrop-blur-md placeholder:text-zinc-400 focus:ring-2 focus:ring-white/30"
         />
         <button
@@ -73,6 +80,23 @@ export function AskTheNews({ onAsk }: AskTheNewsProps) {
           Ask
         </button>
       </form>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {suggestedQuestions.map((question) => (
+          <button
+            key={question}
+            type="button"
+            onClick={() => {
+              setValue(question)
+              const nextQuery = questionToQuery(question)
+              if (nextQuery) onAsk(nextQuery)
+            }}
+            className="rounded-full border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+          >
+            {question}
+          </button>
+        ))}
+      </div>
     </section>
   )
 }

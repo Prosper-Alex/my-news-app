@@ -7,7 +7,7 @@ const tabs: Array<{ key: NewsCategory; label: string }> = [
   { key: "technology", label: "Tech" },
   { key: "business", label: "Business" },
   { key: "sports", label: "Sports" },
-  { key: "local", label: "Local" },
+  { key: "local", label: "Nigeria" },
 ]
 
 type CategoryTabsProps = {
@@ -25,6 +25,7 @@ export function CategoryTabs({ value, onChange }: CategoryTabsProps) {
             key={tab.key}
             type="button"
             onClick={() => onChange(tab.key)}
+            aria-pressed={active}
             className={[
               "rounded-full px-4 py-2 text-sm font-semibold transition",
               "border backdrop-blur-md",
