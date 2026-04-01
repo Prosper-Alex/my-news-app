@@ -13,6 +13,7 @@ import { QuickLinks } from "@/components/home/quick-links";
 import { NewsGrid } from "@/components/news/news-grid";
 import { SiteFrame } from "@/components/site/site-frame";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ApiConfigError } from "@/components/ui/api-config-error";
 import { SkeletonLoader } from "@/components/ui/skeleton-loader";
 import { Pagination } from "@/components/ui/pagination";
 import { extractTopics } from "@/lib/news-utils";
@@ -159,28 +160,40 @@ export function HomePage({ initialItems }: HomePageProps) {
             ) : null}
 
             {state.status === "error" && !state.data ? (
-              <EmptyState
-                title="Couldn’t load news"
-                description={state.error}
-                action={
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPage(1);
-                      setRefreshKey((current) => current + 1);
-                    }}
-                    className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200">
-                    Retry
-                  </button>
-                }
-              />
+              state.error?.includes("not configured") ||
+              state.error?.includes("NEWS_API_KEY") ? (
+                <ApiConfigError hint={state.error} showSetupGuide={true} />
+              ) : (
+                <EmptyState
+                  title="Couldn't load news"
+                  description={state.error}
+                  action={
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPage(1);
+                        setRefreshKey((current) => current + 1);
+                      }}
+                      className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200">
+                      Retry
+                    </button>
+                  }
+                />
+              )
             ) : null}
 
             {state.status !== "loading" && state.data && !state.data.length ? (
-              <EmptyState
-                title="No results"
-                description="Try a different search term or switch categories."
-              />
+              !submittedQuery && !initialItems.length ? (
+                <ApiConfigError
+                  hint="No news available. The API key may not be configured, or no results were found."
+                  showSetupGuide={true}
+                />
+              ) : (
+                <EmptyState
+                  title="No results"
+                  description="Try a different search term or switch categories."
+                />
+              )
             ) : null}
 
             {state.data?.length ? (

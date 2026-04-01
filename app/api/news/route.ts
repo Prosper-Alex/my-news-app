@@ -2,14 +2,26 @@ import {
   buildTopHeadlinesUrl,
   fetchTopHeadlines,
   NewsApiError,
-} from "@/lib/api"
+} from "@/lib/api";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const query = searchParams.get("q")?.trim() || undefined
-  const rawCategory = searchParams.get("category")?.trim() || undefined
-  const country = searchParams.get("country")?.trim() || "us"
-  const todayOnly = searchParams.get("today") !== "0"
+  // Validate API key at runtime
+  if (!process.env.NEWS_API_KEY) {
+    return Response.json(
+      {
+        error:
+          "Server not configured: NEWS_API_KEY is missing. Please set your environment variable.",
+        hint: "Add NEWS_API_KEY to your .env.local file. Get a free API key from https://newsapi.org/",
+      },
+      { status: 503 },
+    );
+  }
+
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get("q")?.trim() || undefined;
+  const rawCategory = searchParams.get("category")?.trim() || undefined;
+  const country = searchParams.get("country")?.trim() || "us";
+  const todayOnly = searchParams.get("today") !== "0";
 
   const allowedCategories = new Set([
     "business",
@@ -19,28 +31,33 @@ export async function GET(request: Request) {
     "science",
     "sports",
     "technology",
-  ])
+  ]);
   const category =
-    rawCategory && allowedCategories.has(rawCategory) ? rawCategory : undefined
+    rawCategory && allowedCategories.has(rawCategory) ? rawCategory : undefined;
 
   try {
-    const items = await fetchTopHeadlines({ query, category, country, todayOnly })
-    return Response.json({ items })
+    const items = await fetchTopHeadlines({
+      query,
+      category,
+      country,
+      todayOnly,
+    });
+    return Response.json({ items });
   } catch (err) {
-    console.error("GET /api/news failed", err)
-    const url = new URL(request.url)
+    console.error("GET /api/news failed", err);
+    const url = new URL(request.url);
     const isLocalhost =
       url.hostname === "localhost" ||
       url.hostname === "127.0.0.1" ||
-      url.hostname === "::1"
-    const isDev = process.env.NODE_ENV !== "production" || isLocalhost
+      url.hostname === "::1";
+    const isDev = process.env.NODE_ENV !== "production" || isLocalhost;
 
     const endpoint = buildTopHeadlinesUrl({
       query,
       category,
       country,
       pageSize: 24,
-    }).toString()
+    }).toString();
     const debug = isDev
       ? {
           endpoint,
@@ -48,36 +65,37 @@ export async function GET(request: Request) {
           baseUrl: process.env.NEWS_API_BASE_URL ?? "https://newsapi.org",
           nodeEnv: process.env.NODE_ENV ?? null,
         }
-      : undefined
+      : undefined;
 
     if (err instanceof Error && err.message.includes("Missing NEWS_API_KEY")) {
       return Response.json(
         { error: isDev ? err.message : "Server misconfigured.", debug },
         { status: 500 },
-      )
+      );
     }
 
     if (err instanceof NewsApiError) {
-      const status =
-        err.status === 429 ? 503 : err.status >= 500 ? 502 : 502
+      const status = err.status === 429 ? 503 : err.status >= 500 ? 502 : 502;
 
       const message = isDev
         ? err.status === 401 || err.status === 403
           ? `NewsAPI rejected the request (${err.status}). Check NEWS_API_KEY. ${err.message}`
           : `NewsAPI error (${err.status}). ${err.message}`
-        : "Failed to fetch news right now. Please try again."
+        : "Failed to fetch news right now. Please try again.";
 
-      return Response.json({ error: message, debug }, { status })
+      return Response.json({ error: message, debug }, { status });
     }
 
     const message =
-      err instanceof Error ? err.message : "Failed to fetch news right now."
+      err instanceof Error ? err.message : "Failed to fetch news right now.";
     return Response.json(
       {
-        error: isDev ? message : "Failed to fetch news right now. Please try again.",
+        error: isDev
+          ? message
+          : "Failed to fetch news right now. Please try again.",
         debug,
       },
       { status: 500 },
-    )
+    );
   }
 }

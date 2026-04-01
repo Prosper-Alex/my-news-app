@@ -75,7 +75,7 @@ function buildNigeriaFallbackUrl(params: {
   const query =
     params.query?.trim() ||
     (params.category?.trim()
-      ? fallbackCategoryQueries[params.category.trim()] ?? ""
+      ? (fallbackCategoryQueries[params.category.trim()] ?? "")
       : "");
 
   if (query) {
@@ -86,8 +86,8 @@ function buildNigeriaFallbackUrl(params: {
 }
 
 function toNewsItem(article: NewsApiArticle): NewsItem {
-  const description = article.description ?? null
-  const content = article.content ?? null
+  const description = article.description ?? null;
+  const content = article.content ?? null;
 
   return {
     id: article.url,
@@ -156,7 +156,14 @@ export async function fetchTopHeadlines({
   todayOnly = true,
 }: FetchTopHeadlinesParams = {}): Promise<NewsItem[]> {
   const apiKey = process.env.NEWS_API_KEY;
-  if (!apiKey) throw new Error("Missing NEWS_API_KEY environment variable.");
+  // During build/prerender, return empty array to prevent crashes
+  // Validation happens at API route runtime
+  if (!apiKey) {
+    console.warn(
+      "⚠️  NEWS_API_KEY not set. Running without news data. Set the environment variable to fetch live news.",
+    );
+    return [];
+  }
 
   const url = buildTopHeadlinesUrl({ query, category, country, pageSize });
   const revalidate = query?.trim() || category?.trim() ? 60 : 300;
@@ -173,7 +180,9 @@ export async function fetchTopHeadlines({
 
   if (!todayOnly) return resolvedItems;
 
-  const todayItems = resolvedItems.filter((item) => isTodayUtc(item.publishedAt));
+  const todayItems = resolvedItems.filter((item) =>
+    isTodayUtc(item.publishedAt),
+  );
   console.log(
     `Fetched ${resolvedItems.length} articles for ${country}${shouldUseNigeriaFallback ? " using Nigeria fallback" : ""}, ${todayItems.length} published today.`,
   );

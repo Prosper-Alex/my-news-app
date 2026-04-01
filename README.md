@@ -2,13 +2,20 @@ Production-ready news SaaS starter built with Next.js (App Router), TypeScript, 
 
 ## Getting Started
 
-1. Create env file:
+### 1. Setup Environment Variables
 
 ```bash
 cp .env.example .env.local
 ```
 
-2. Run the dev server:
+Edit `.env.local` and add your NEWS_API_KEY:
+
+```env
+# Get a free key from https://newsapi.org/
+NEWS_API_KEY=your_api_key_here
+```
+
+### 2. Run the Dev Server
 
 ```bash
 pnpm dev
@@ -16,21 +23,22 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Notes
+### 3. (Optional) Setup Database for Bookmarks
 
-- News is fetched server-side in `app/api/news/route.ts` using `NEWS_API_KEY` (kept out of the browser).
-- Auth is scaffolded with NextAuth in `app/api/auth/[...nextauth]/route.ts` (GitHub provider).
-- Bookmarks use Prisma + PostgreSQL via `DATABASE_URL` and the `/api/bookmarks` route.
-
-## Database (Bookmarks)
-
-1. Set `DATABASE_URL` in `.env.local` (PostgreSQL).
-
-2. Run migrations + generate Prisma client:
+If you want to use the bookmarks feature with PostgreSQL:
 
 ```bash
+# Set DATABASE_URL in .env.local
 pnpm prisma:migrate
 ```
+
+## How It Works
+
+- **News API**: Fetched server-side in `app/api/news/route.ts` using `NEWS_API_KEY` (never exposed to the browser).
+- **Build Safety**: The app uses dynamic rendering (`force-dynamic`) to prevent build crashes when the API key is missing. Graceful fallback UI is shown.
+- **Error Handling**: If `NEWS_API_KEY` is not set, the app displays a helpful setup guide instead of crashing.
+- **Auth**: NextAuth with GitHub provider in `app/api/auth/[...nextauth]/route.ts`.
+- **Bookmarks**: Prisma + PostgreSQL integration via `/api/bookmarks`.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
