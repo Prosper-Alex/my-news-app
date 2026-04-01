@@ -2,13 +2,13 @@ Production-ready news SaaS starter built with Next.js (App Router), TypeScript, 
 
 ## Getting Started
 
-1) Create env file:
+1. Create env file:
 
 ```bash
 cp .env.example .env.local
 ```
 
-2) Run the dev server:
+2. Run the dev server:
 
 ```bash
 pnpm dev
@@ -24,9 +24,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Database (Bookmarks)
 
-1) Set `DATABASE_URL` in `.env.local` (PostgreSQL).
+1. Set `DATABASE_URL` in `.env.local` (PostgreSQL).
 
-2) Run migrations + generate Prisma client:
+2. Run migrations + generate Prisma client:
 
 ```bash
 pnpm prisma:migrate
