@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String
+  articleUrl String
+  title      String
+  imageUrl   String?
+  sourceName String?
+  publishedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, articleUrl])
+  @@index([userId, createdAt])
+}
+
