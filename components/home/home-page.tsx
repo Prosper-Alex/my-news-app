@@ -1,39 +1,40 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import type { NewsCategory, NewsItem } from "@/types/news"
-import { useNews } from "@/hooks/use-news"
-import { FeaturedNews } from "@/components/home/featured-news"
-import { CategoryTabs } from "@/components/home/category-tabs"
-import { Sidebar } from "@/components/home/sidebar"
-import { AskTheNews } from "@/components/home/ask-the-news"
-import { NewsPulse } from "@/components/home/news-pulse"
-import { QuickLinks } from "@/components/home/quick-links"
-import { NewsGrid } from "@/components/news/news-grid"
-import { SiteFrame } from "@/components/site/site-frame"
-import { EmptyState } from "@/components/ui/empty-state"
-import { SkeletonLoader } from "@/components/ui/skeleton-loader"
-import { Pagination } from "@/components/ui/pagination"
-import { extractTopics } from "@/lib/news-utils"
+import { useMemo, useState } from "react";
+import type { NewsCategory, NewsItem } from "@/types/news";
+import { useNews } from "@/hooks/use-news";
+import { FeaturedNews } from "@/components/home/featured-news";
+import NewsFeed from "../news/news-feed";
+import { CategoryTabs } from "@/components/home/category-tabs";
+import { Sidebar } from "@/components/home/sidebar";
+import { AskTheNews } from "@/components/home/ask-the-news";
+import { NewsPulse } from "@/components/home/news-pulse";
+import { QuickLinks } from "@/components/home/quick-links";
+import { NewsGrid } from "@/components/news/news-grid";
+import { SiteFrame } from "@/components/site/site-frame";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SkeletonLoader } from "@/components/ui/skeleton-loader";
+import { Pagination } from "@/components/ui/pagination";
+import { extractTopics } from "@/lib/news-utils";
 
 type HomePageProps = {
-  initialItems: NewsItem[]
-}
+  initialItems: NewsItem[];
+};
 
 export function HomePage({ initialItems }: HomePageProps) {
-  const [query, setQuery] = useState("")
+  const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState<string | undefined>(
     undefined,
-  )
-  const [category, setCategory] = useState<NewsCategory>("all")
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [page, setPage] = useState(1)
+  );
+  const [category, setCategory] = useState<NewsCategory>("all");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [page, setPage] = useState(1);
 
-  const country = category === "local" ? "ng" : "us"
-  const apiCategory = category === "local" ? "all" : category
+  const country = category === "local" ? "ng" : "us";
+  const apiCategory = category === "local" ? "all" : category;
 
   const useInitial =
-    !submittedQuery && apiCategory === "all" && country === "us"
+    !submittedQuery && apiCategory === "all" && country === "us";
 
   const state = useNews({
     query: submittedQuery,
@@ -42,10 +43,10 @@ export function HomePage({ initialItems }: HomePageProps) {
     todayOnly: true,
     initialData: useInitial ? initialItems : undefined,
     refreshKey,
-  })
+  });
 
-  const items = useMemo(() => state.data ?? [], [state.data])
-  const topics = useMemo(() => extractTopics(items), [items])
+  const items = useMemo(() => state.data ?? [], [state.data]);
+  const topics = useMemo(() => extractTopics(items), [items]);
 
   const audienceLabel = submittedQuery
     ? `Search results for “${submittedQuery}”`
@@ -53,33 +54,32 @@ export function HomePage({ initialItems }: HomePageProps) {
       ? "Nigeria"
       : category === "all"
         ? "United States"
-        : category[0].toUpperCase() + category.slice(1)
+        : category[0].toUpperCase() + category.slice(1);
 
-  const pageSize = 15
-  const totalPages = Math.max(1, Math.ceil(items.length / pageSize))
-  const currentPage = Math.min(Math.max(1, page), totalPages)
-  const pageStart = (currentPage - 1) * pageSize
-  const pageItems = items.slice(pageStart, pageStart + pageSize)
-  const rangeStart = items.length ? pageStart + 1 : 0
-  const rangeEnd = Math.min(pageStart + pageSize, items.length)
+  const pageSize = 15;
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const pageStart = (currentPage - 1) * pageSize;
+  const pageItems = items.slice(pageStart, pageStart + pageSize);
+  const rangeStart = items.length ? pageStart + 1 : 0;
+  const rangeEnd = Math.min(pageStart + pageSize, items.length);
 
   return (
     <SiteFrame
       query={query}
       onQueryChange={setQuery}
       onSearch={() => {
-        const trimmed = query.trim()
-        setSubmittedQuery(trimmed ? trimmed : undefined)
-        setPage(1)
+        const trimmed = query.trim();
+        setSubmittedQuery(trimmed ? trimmed : undefined);
+        setPage(1);
       }}
       onClear={() => {
-        setQuery("")
-        setSubmittedQuery(undefined)
-        setPage(1)
+        setQuery("");
+        setSubmittedQuery(undefined);
+        setPage(1);
       }}
-      showSearch
-    >
-      <section className="mx-auto w-full max-w-screen-xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+      showSearch>
+      <section className="mx-auto w-full max-w-screen-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-12">
           <div className="space-y-6 lg:space-y-8">
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-end">
@@ -121,12 +121,14 @@ export function HomePage({ initialItems }: HomePageProps) {
 
             <FeaturedNews items={items} />
 
+            <NewsFeed page={page} onPageChange={setPage} pageSize={pageSize} />
+
             <AskTheNews
               onAsk={(nextQuery) => {
-                setCategory("all")
-                setQuery(nextQuery)
-                setSubmittedQuery(nextQuery)
-                setPage(1)
+                setCategory("all");
+                setQuery(nextQuery);
+                setSubmittedQuery(nextQuery);
+                setPage(1);
               }}
             />
 
@@ -134,10 +136,10 @@ export function HomePage({ initialItems }: HomePageProps) {
               <CategoryTabs
                 value={category}
                 onChange={(next) => {
-                  setCategory(next)
-                  setSubmittedQuery(undefined)
-                  setQuery("")
-                  setPage(1)
+                  setCategory(next);
+                  setSubmittedQuery(undefined);
+                  setQuery("");
+                  setPage(1);
                 }}
               />
               {submittedQuery ? (
@@ -164,11 +166,10 @@ export function HomePage({ initialItems }: HomePageProps) {
                   <button
                     type="button"
                     onClick={() => {
-                      setPage(1)
-                      setRefreshKey((current) => current + 1)
+                      setPage(1);
+                      setRefreshKey((current) => current + 1);
                     }}
-                    className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200"
-                  >
+                    className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-zinc-200">
                     Retry
                   </button>
                 }
@@ -212,14 +213,14 @@ export function HomePage({ initialItems }: HomePageProps) {
           <Sidebar
             topics={topics}
             onTopicClick={(topic) => {
-              setCategory("all")
-              setQuery(topic)
-              setSubmittedQuery(topic)
-              setPage(1)
+              setCategory("all");
+              setQuery(topic);
+              setSubmittedQuery(topic);
+              setPage(1);
             }}
           />
         </div>
       </section>
     </SiteFrame>
-  )
+  );
 }
