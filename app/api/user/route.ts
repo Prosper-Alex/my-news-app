@@ -1,12 +1,11 @@
 import { getCurrentUser } from "@/lib/auth";
 import type { NextRequest } from "next/server";
-
 /**
  * Protected API Route: GET /api/user
  * Returns the current user's information
  * Requires active authentication session
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const user = await getCurrentUser();
 

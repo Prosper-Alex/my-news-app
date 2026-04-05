@@ -1,15 +1,15 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import Link from "next/link";
+import { SignOutButton } from "@clerk/nextjs";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { UserProfile } from "./user-profile";
-import { useTransition } from "react";
+import { useAppSession } from "@/lib/auth/client";
 
 export function EnhancedAuthButton() {
-  const { status, data: session } = useSession();
-  const [isPending, startTransition] = useTransition();
+  const { status, user } = useAppSession();
 
-  if (status === "loading" || isPending) {
+  if (status === "loading") {
     return (
       <div className="flex items-center gap-2">
         <LoadingSpinner size="sm" />
@@ -18,34 +18,28 @@ export function EnhancedAuthButton() {
     );
   }
 
-  if (status === "authenticated" && session) {
+  if (status === "authenticated" && user) {
     return (
       <div className="flex items-center gap-3">
-        <UserProfile session={session} />
-        <button
-          type="button"
-          onClick={() =>
-            startTransition(async () => {
-              await signOut({ redirect: true, redirectUrl: "/" });
-            })
-          }
-          className="rounded-lg bg-red-900/20 px-3 py-2 text-sm font-semibold text-red-200 hover:bg-red-900/30 transition-colors">
-          Sign out
-        </button>
+        <UserProfile user={user} />
+        <SignOutButton redirectUrl="/">
+          <button
+            type="button"
+            className="rounded-lg bg-red-900/20 px-3 py-2 text-sm font-semibold text-red-200 transition-colors hover:bg-red-900/30"
+          >
+            Sign out
+          </button>
+        </SignOutButton>
       </div>
     );
   }
 
   return (
-    <button
-      type="button"
-      onClick={() =>
-        startTransition(async () => {
-          await signIn("github", { redirectUrl: "/dashboard" });
-        })
-      }
-      className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 transition-colors">
-      Sign in with GitHub
-    </button>
+    <Link
+      href="/login"
+      className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800"
+    >
+      Sign in
+    </Link>
   );
 }

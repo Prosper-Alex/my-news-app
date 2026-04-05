@@ -7,15 +7,17 @@ export const dynamic = "force-dynamic";
 export const revalidate = false;
 
 export default async function Page() {
+  let initialItems: Awaited<ReturnType<typeof fetchTopHeadlines>> = [];
+
   try {
-    const initialItems = await fetchTopHeadlines({
+    initialItems = await fetchTopHeadlines({
       country: "us",
       todayOnly: true,
     });
-    return <HomePage initialItems={initialItems} />;
   } catch (error) {
     // Gracefully handle fetch errors
     console.error("Failed to fetch initial news:", error);
-    return <HomePage initialItems={[]} />;
   }
+
+  return <HomePage initialItems={initialItems} />;
 }

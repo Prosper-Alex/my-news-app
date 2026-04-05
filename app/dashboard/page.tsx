@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth";
 import { EnhancedAuthButton } from "@/components/auth/enhanced-auth-button";
+import { getUserInitial } from "@/lib/auth/user";
 
 export const metadata = {
   title: "Dashboard | News App",
@@ -33,7 +35,7 @@ export default async function DashboardPage() {
             Welcome, {session.user.name}!
           </h2>
           <p className="text-zinc-300">
-            You're now authenticated and can see personalized content. This
+            You are now authenticated and can see personalized content. This
             dashboard is protected and only accessible to logged-in users.
           </p>
         </div>
@@ -46,13 +48,9 @@ export default async function DashboardPage() {
               Profile Information
             </h3>
             <div className="space-y-3">
-              {session.user.image && (
-                <img
-                  src={session.user.image}
-                  alt={session.user.name ?? "Avatar"}
-                  className="w-20 h-20 rounded-full"
-                />
-              )}
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/10 text-xl font-semibold text-white">
+                {getUserInitial(session.user.name)}
+              </div>
               <div>
                 <p className="text-sm text-zinc-400">Name</p>
                 <p className="text-white font-medium">{session.user.name}</p>
@@ -76,12 +74,12 @@ export default async function DashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-zinc-400">Provider</p>
-                <p className="text-white font-medium">GitHub OAuth</p>
+                <p className="text-white font-medium">Clerk</p>
               </div>
               <div>
-                <p className="text-sm text-zinc-400">Session ID</p>
+                <p className="text-sm text-zinc-400">User ID</p>
                 <p className="text-white font-mono text-xs truncate">
-                  {session.user?.email}
+                  {session.user?.id}
                 </p>
               </div>
             </div>
@@ -90,7 +88,7 @@ export default async function DashboardPage() {
 
         {/* Features */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md space-y-4">
-          <h3 className="text-lg font-semibold text-white">What's Available</h3>
+          <h3 className="text-lg font-semibold text-white">What Is Available</h3>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
               {
@@ -137,13 +135,13 @@ export default async function DashboardPage() {
                 desc: "Explore new topics",
               },
             ].map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 className="rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 p-4 transition-colors">
                 <p className="font-semibold text-white">{link.label}</p>
                 <p className="text-sm text-zinc-400">{link.desc}</p>
-              </a>
+              </Link>
             ))}
           </div>
         </div>

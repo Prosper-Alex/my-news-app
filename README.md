@@ -5,14 +5,18 @@ Production-ready news SaaS starter built with Next.js (App Router), TypeScript, 
 ### 1. Setup Environment Variables
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Edit `.env.local` and add your NEWS_API_KEY:
+Edit `.env` and add your keys:
 
 ```env
 # Get a free key from https://newsapi.org/
 NEWS_API_KEY=your_api_key_here
+
+# Get these from your Clerk dashboard
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
 ```
 
 ### 2. Run the Dev Server
@@ -37,7 +41,7 @@ pnpm prisma:migrate
 - **News API**: Fetched server-side in `app/api/news/route.ts` using `NEWS_API_KEY` (never exposed to the browser).
 - **Build Safety**: The app uses dynamic rendering (`force-dynamic`) to prevent build crashes when the API key is missing. Graceful fallback UI is shown.
 - **Error Handling**: If `NEWS_API_KEY` is not set, the app displays a helpful setup guide instead of crashing.
-- **Auth**: NextAuth with GitHub provider in `app/api/auth/[...nextauth]/route.ts`.
+- **Auth**: Clerk in App Router with protected pages handled in `proxy.ts`.
 - **Bookmarks**: Prisma + PostgreSQL integration via `/api/bookmarks`.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

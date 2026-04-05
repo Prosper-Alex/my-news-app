@@ -83,7 +83,7 @@ export default function NewsFeed({
       <div className="grid gap-4">
         {news.map((item) => (
           <article
-            key={item.url || (item as any).id || item.title}
+            key={`${item.url}-${item.publishedAt ?? item.title}`}
             className="rounded-md border border-white/6 bg-white/3 p-4">
             <a
               href={item.url}

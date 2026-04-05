@@ -1,7 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 type ApiConfigErrorProps = {
   hint?: string;
   showSetupGuide?: boolean;
@@ -44,7 +42,7 @@ export function ApiConfigError({
             </li>
             <li className="flex gap-2">
               <span className="font-semibold text-amber-300">2.</span>
-              <span>Create a .env.local file in the project root</span>
+              <span>Create a `.env` file in the project root</span>
             </li>
             <li className="flex gap-2">
               <span className="font-semibold text-amber-300">3.</span>

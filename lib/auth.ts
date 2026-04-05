@@ -1,12 +1,23 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
+import { auth, clerkClient } from "@clerk/nextjs/server";
+import { toAppUser } from "@/lib/auth/user";
 
 /**
  * Get the current user's session on the server
  * Use this in Server Components and API Routes
  */
 export async function getCurrentSession() {
-  return await getServerSession(authOptions);
+  const { userId } = await auth();
+  if (!userId) {
+    return null;
+  }
+
+  const client = await clerkClient();
+  const user = toAppUser(await client.users.getUser(userId));
+  if (!user) {
+    return null;
+  }
+
+  return { user };
 }
 
 /**

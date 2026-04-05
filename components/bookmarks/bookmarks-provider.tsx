@@ -6,7 +6,7 @@ import {
   useContext,
   useMemo,
 } from "react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@clerk/nextjs"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type { Bookmark, CreateBookmarkInput } from "@/types/bookmarks"
 import { api, getApiErrorMessage } from "@/lib/client/api"
@@ -28,12 +28,13 @@ type BookmarksContextValue = {
 const BookmarksContext = createContext<BookmarksContextValue | null>(null)
 
 export function BookmarksProvider({ children }: { children: React.ReactNode }) {
-  const { status } = useSession()
+  const { isLoaded, isSignedIn, userId } = useAuth()
   const queryClient = useQueryClient()
-  const enabled = status === "authenticated"
+  const enabled = isLoaded && isSignedIn
+  const queryKey = ["bookmarks", userId] as const
 
   const bookmarksQuery = useQuery({
-    queryKey: ["bookmarks"] as const,
+    queryKey,
     enabled,
     queryFn: async () => {
       try {
@@ -56,7 +57,7 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
       }
     },
     onSuccess: (item) => {
-      queryClient.setQueryData(["bookmarks"], (prev: Bookmark[] | undefined) => {
+      queryClient.setQueryData(queryKey, (prev: Bookmark[] | undefined) => {
         const nextItems = [item, ...(prev ?? [])].filter(
           (b, i, arr) => arr.findIndex((x) => x.articleUrl === b.articleUrl) === i,
         )
@@ -76,7 +77,7 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
       }
     },
     onSuccess: (_data, articleUrl) => {
-      queryClient.setQueryData(["bookmarks"], (prev: Bookmark[] | undefined) =>
+      queryClient.setQueryData(queryKey, (prev: Bookmark[] | undefined) =>
         (prev ?? []).filter((b) => b.articleUrl !== articleUrl),
       )
     },
@@ -110,6 +111,10 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
   }, [bookmarksQuery, enabled])
 
   const state = useMemo<BookmarksState>(() => {
+    if (!isLoaded) {
+      return { status: "loading", items: [], error: null }
+    }
+
     if (!enabled) {
       return { status: "idle", items: [], error: null }
     }
@@ -141,6 +146,7 @@ export function BookmarksProvider({ children }: { children: React.ReactNode }) {
     bookmarksQuery.isError,
     bookmarksQuery.isPending,
     enabled,
+    isLoaded,
     removeMutation.isPending,
   ])
 

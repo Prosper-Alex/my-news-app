@@ -1,10 +1,10 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/components/ui/toast";
+import { useAppSession } from "@/lib/auth/client";
 
 const PREFERENCES = [
   { id: "business", label: "Business", emoji: "💼" },
@@ -16,17 +16,17 @@ const PREFERENCES = [
 ];
 
 export default function OnboardingPage() {
-  const { data: session, status } = useSession();
+  const { status, user } = useAppSession();
   const router = useRouter();
   const { addToast } = useToast();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if not authenticated
-  if (status === "unauthenticated") {
-    router.replace("/login");
-    return null;
-  }
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/login?redirect_url=%2Fonboarding");
+    }
+  }, [router, status]);
 
   if (status === "loading") {
     return (
@@ -34,6 +34,10 @@ export default function OnboardingPage() {
         <LoadingSpinner size="lg" />
       </div>
     );
+  }
+
+  if (status === "unauthenticated" || !user) {
+    return null;
   }
 
   const toggleCategory = (id: string) => {
@@ -64,7 +68,7 @@ export default function OnboardingPage() {
 
       addToast("Profile setup complete!", "success");
       router.replace("/dashboard");
-    } catch (error) {
+    } catch {
       addToast("Failed to save preferences", "error");
     } finally {
       setIsLoading(false);
@@ -81,27 +85,23 @@ export default function OnboardingPage() {
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold text-white">
-            Welcome, {session?.user?.name}!
+            Welcome, {user.name ?? "reader"}!
           </h1>
           <p className="text-zinc-400">
-            Let's customize your news feed to match your interests
+            Let us customize your news feed to match your interests
           </p>
         </div>
 
         {/* Preferences Card */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md space-y-6">
           {/* User Info */}
-          <div className="flex items-center gap-4 pb-6 border-b border-white/10">
-            {session?.user?.image && (
-              <img
-                src={session.user.image}
-                alt={session.user.name ?? "User"}
-                className="w-12 h-12 rounded-full"
-              />
-            )}
+          <div className="flex items-center gap-4 border-b border-white/10 pb-6">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-sm font-semibold text-white">
+              {(user.name ?? "M").charAt(0).toUpperCase()}
+            </div>
             <div>
-              <p className="font-semibold text-white">{session?.user?.name}</p>
-              <p className="text-sm text-zinc-400">{session?.user?.email}</p>
+              <p className="font-semibold text-white">{user.name ?? "MyNews reader"}</p>
+              <p className="text-sm text-zinc-400">{user.email ?? "Account"}</p>
             </div>
           </div>
 
@@ -111,7 +111,7 @@ export default function OnboardingPage() {
               Choose Your Interests
             </h2>
             <p className="text-sm text-zinc-400">
-              Select the topics you're most interested in. You can change these
+              Select the topics you are most interested in. You can change these
               anytime in settings.
             </p>
 

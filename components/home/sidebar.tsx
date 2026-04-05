@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useSession } from "next-auth/react"
+import { useAppSession } from "@/lib/auth/client"
 import { useBookmarks } from "@/components/bookmarks/bookmarks-provider"
 import { createStoryHref } from "@/lib/news-utils"
 
@@ -11,7 +11,7 @@ type SidebarProps = {
 }
 
 export function Sidebar({ topics, onTopicClick }: SidebarProps) {
-  const { status } = useSession()
+  const { status } = useAppSession()
   const bookmarks = useBookmarks()
   const saved = bookmarks.state.items.slice(0, 4)
 
@@ -44,11 +44,20 @@ export function Sidebar({ topics, onTopicClick }: SidebarProps) {
             <div className="mt-2 text-zinc-300">{bookmarks.state.error}</div>
           ) : null}
 
-          {status !== "authenticated" ? (
+          {status === "loading" ? (
+            <div className="mt-2 text-zinc-300">Loading your saved articles…</div>
+          ) : null}
+
+          {status === "unauthenticated" ? (
             <div className="mt-2 text-zinc-300">
-              Sign in to save articles and sync across devices.
+              Sign in to save articles and sync across devices.{" "}
+              <Link href="/login" className="font-semibold text-white hover:text-cyan-200">
+                Open account
+              </Link>
             </div>
-          ) : saved.length ? (
+          ) : null}
+
+          {status === "authenticated" && saved.length ? (
             <ul className="mt-3 space-y-3">
               {saved.map((b) => (
                 <li key={b.id} className="text-sm">
@@ -70,11 +79,13 @@ export function Sidebar({ topics, onTopicClick }: SidebarProps) {
                 </li>
               ))}
             </ul>
-          ) : (
+          ) : null}
+
+          {status === "authenticated" && !saved.length ? (
             <div className="mt-2 text-zinc-300">
               No saved articles yet. Tap “Save” on a story.
             </div>
-          )}
+          ) : null}
         </section>
 
         <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-200 backdrop-blur-md xl:p-6">

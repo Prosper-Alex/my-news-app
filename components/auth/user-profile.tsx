@@ -1,27 +1,29 @@
 "use client";
 
-import Image from "next/image";
-import type { Session } from "next-auth";
+import { getUserInitial } from "@/lib/auth/user";
 
-export function UserProfile({ session }: { session: Session | null }) {
-  if (!session?.user) {
+type UserProfileProps = {
+  user: {
+    name: string | null;
+    email: string | null;
+  } | null;
+};
+
+export function UserProfile({ user }: UserProfileProps) {
+  if (!user) {
     return null;
   }
 
   return (
     <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2 backdrop-blur-md">
-      {session.user.image && (
-        <Image
-          src={session.user.image}
-          alt={session.user.name ?? "User avatar"}
-          width={32}
-          height={32}
-          className="rounded-full"
-        />
-      )}
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white">
+        {getUserInitial(user.name)}
+      </span>
       <div className="flex flex-col">
-        <p className="text-xs font-semibold text-white">{session.user.name}</p>
-        <p className="text-xs text-zinc-400">{session.user.email}</p>
+        <p className="text-xs font-semibold text-white">
+          {user.name ?? "MyNews reader"}
+        </p>
+        <p className="text-xs text-zinc-400">{user.email ?? "Account"}</p>
       </div>
     </div>
   );
