@@ -1,20 +1,20 @@
 /* eslint-disable @next/next/no-img-element */
-"use client"
+"use client";
 
-import Link from "next/link"
-import type { NewsItem } from "@/types/news"
-import { createStoryHref, formatStoryDate } from "@/lib/news-utils"
+import Link from "next/link";
+import type { NewsItem } from "@/types/news";
+import { createStoryHref, formatStoryDate } from "@/lib/news-utils";
 
 type FeaturedNewsProps = {
-  items: NewsItem[]
-}
+  items: NewsItem[];
+};
 
 export function FeaturedNews({ items }: FeaturedNewsProps) {
-  const featured = items.slice(0, 3)
-  if (!featured.length) return null
+  const featured = items.slice(0, 3);
+  if (!featured.length) return null;
 
   return (
-    <section className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3 lg:gap-6">
+    <section className="grid items-stretch grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
       {featured.map((item, index) => (
         <article
           key={item.id}
@@ -23,8 +23,7 @@ export function FeaturedNews({ items }: FeaturedNewsProps) {
             "bg-white/5 shadow-sm backdrop-blur-md transition",
             "hover:border-white/20 hover:bg-white/10",
             index === 0 ? "lg:col-span-2" : "",
-          ].join(" ")}
-        >
+          ].join(" ")}>
           <div className="absolute inset-0">
             {item.imageUrl ? (
               <img
@@ -35,9 +34,9 @@ export function FeaturedNews({ items }: FeaturedNewsProps) {
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="h-full w-full bg-gradient-to-br from-white/10 to-transparent" />
+              <div className="h-full w-full bg-linear-to-br from-white/10 to-transparent" />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
           </div>
 
           <div className="relative flex h-full flex-col justify-end p-6">
@@ -49,8 +48,7 @@ export function FeaturedNews({ items }: FeaturedNewsProps) {
             <h2 className="mt-3 text-balance text-lg font-semibold leading-6 text-white">
               <Link
                 href={createStoryHref(item)}
-                className="line-clamp-2 underline-offset-4 hover:underline"
-              >
+                className="line-clamp-2 underline-offset-4 hover:underline">
                 {item.title}
               </Link>
             </h2>
@@ -73,16 +71,14 @@ export function FeaturedNews({ items }: FeaturedNewsProps) {
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <Link
                 href={createStoryHref(item)}
-                className="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-zinc-200"
-              >
+                className="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-zinc-200">
                 Open briefing
               </Link>
               <a
                 href={item.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10"
-              >
+                className="inline-flex items-center rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10">
                 Visit publisher
               </a>
             </div>
@@ -90,5 +86,5 @@ export function FeaturedNews({ items }: FeaturedNewsProps) {
         </article>
       ))}
     </section>
-  )
+  );
 }

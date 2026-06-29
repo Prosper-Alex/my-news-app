@@ -84,20 +84,26 @@ export default async function Page({ searchParams }: DiscoverPageProps) {
   const apiCategory =
     category === "all" || category === "local" ? undefined : category;
 
-  const items = await fetchTopHeadlines({
-    query,
-    category: apiCategory,
-    country,
-    todayOnly: true,
-    pageSize: 30,
-  });
+  let items: Awaited<ReturnType<typeof fetchTopHeadlines>> = [];
+
+  try {
+    items = await fetchTopHeadlines({
+      query,
+      category: apiCategory,
+      country,
+      todayOnly: true,
+      pageSize: 30,
+    });
+  } catch (error) {
+    console.error("Failed to fetch discover news:", error);
+  }
 
   const topics = extractTopics(items);
   const sources = getSourceBreakdown(items, 5);
 
   return (
     <SiteFrame>
-      <section className="mx-auto w-full max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-end">
           <div>
             <div className="text-xs font-semibold tracking-[0.16em] text-cyan-200 uppercase">
@@ -178,43 +184,47 @@ export default async function Page({ searchParams }: DiscoverPageProps) {
               <FeaturedNews items={items} />
             </div>
 
-            <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
               <div className="space-y-6">
                 <NewsGrid items={items.slice(0, 12)} />
               </div>
 
-              <aside className="space-y-5">
-                <section className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-md">
-                  <div className="text-base font-semibold text-white">
-                    Topic pivots
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {topics.map((topic) => (
-                      <Link
-                        key={topic}
-                        href={`/discover?q=${encodeURIComponent(topic)}`}
-                        className="rounded-full border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
-                        {topic}
-                      </Link>
-                    ))}
-                  </div>
-                </section>
+              <aside className="hidden lg:block">
+                <div className="sticky top-24 space-y-5">
+                  <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-200 backdrop-blur-md xl:p-6">
+                    <div className="text-base font-semibold text-white">
+                      Topic pivots
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {topics.map((topic) => (
+                        <Link
+                          key={topic}
+                          href={`/discover?q=${encodeURIComponent(topic)}`}
+                          className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-zinc-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
+                          {topic}
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
 
-                <section className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-md">
-                  <div className="text-base font-semibold text-white">
-                    Source mix
-                  </div>
-                  <ul className="mt-3 space-y-3 text-sm text-zinc-300">
-                    {sources.map((source) => (
-                      <li
-                        key={source.name}
-                        className="flex items-center justify-between gap-3">
-                        <span className="truncate">{source.name}</span>
-                        <span className="text-zinc-400">{source.share}%</span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                  <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-200 backdrop-blur-md xl:p-6">
+                    <div className="text-base font-semibold text-white">
+                      Source mix
+                    </div>
+                    <ul className="mt-3 space-y-3 text-zinc-300">
+                      {sources.map((source) => (
+                        <li
+                          key={source.name}
+                          className="flex items-center justify-between gap-3">
+                          <span className="truncate">{source.name}</span>
+                          <span className="text-zinc-400">
+                            {source.share}%
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                </div>
               </aside>
             </div>
           </>

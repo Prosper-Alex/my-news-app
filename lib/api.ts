@@ -73,9 +73,9 @@ function buildNigeriaFallbackUrl(params: {
   };
 
   const query =
-    params.query?.trim() ||
+    expandNigeriaQuery(params.query) ||
     (params.category?.trim()
-      ? fallbackCategoryQueries[params.category.trim()] ?? ""
+      ? (fallbackCategoryQueries[params.category.trim()] ?? "")
       : "");
 
   if (query) {
@@ -85,9 +85,27 @@ function buildNigeriaFallbackUrl(params: {
   return url;
 }
 
+function expandNigeriaQuery(query?: string): string {
+  const trimmed = query?.trim();
+  if (!trimmed) return "";
+
+  if (/\b(ai|a\.i\.|artificial intelligence)\b/i.test(trimmed)) {
+    return [
+      trimmed,
+      "\"artificial intelligence\"",
+      "\"machine learning\"",
+      "technology",
+      "startup",
+      "fintech",
+    ].join(" OR ");
+  }
+
+  return trimmed;
+}
+
 function toNewsItem(article: NewsApiArticle): NewsItem {
-  const description = article.description ?? null
-  const content = article.content ?? null
+  const description = article.description ?? null;
+  const content = article.content ?? null;
 
   return {
     id: article.url,
@@ -121,11 +139,22 @@ async function fetchNewsItems(
   revalidate: number,
 ): Promise<NewsItem[]> {
   const isDev = process.env.NODE_ENV !== "production";
-  const res = await fetch(url, {
-    headers: { "X-Api-Key": apiKey },
-    cache: isDev ? "no-store" : "force-cache",
-    next: isDev ? undefined : { revalidate },
-  });
+  let res: Response;
+
+  try {
+    res = await fetch(url, {
+      headers: { "X-Api-Key": apiKey },
+      cache: isDev ? "no-store" : "force-cache",
+      next: isDev ? undefined : { revalidate },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new NewsApiError(
+      503,
+      `Could not reach NewsAPI right now. ${message}`,
+      "network_error",
+    );
+  }
 
   const data = (await res.json()) as NewsApiResponse;
 
@@ -156,7 +185,14 @@ export async function fetchTopHeadlines({
   todayOnly = true,
 }: FetchTopHeadlinesParams = {}): Promise<NewsItem[]> {
   const apiKey = process.env.NEWS_API_KEY;
-  if (!apiKey) throw new Error("Missing NEWS_API_KEY environment variable.");
+  // During build/prerender, return empty array to prevent crashes
+  // Validation happens at API route runtime
+  if (!apiKey) {
+    console.warn(
+      "⚠️  NEWS_API_KEY not set. Running without news data. Set the environment variable to fetch live news.",
+    );
+    return [];
+  }
 
   const url = buildTopHeadlinesUrl({ query, category, country, pageSize });
   const revalidate = query?.trim() || category?.trim() ? 60 : 300;
@@ -173,7 +209,9 @@ export async function fetchTopHeadlines({
 
   if (!todayOnly) return resolvedItems;
 
-  const todayItems = resolvedItems.filter((item) => isTodayUtc(item.publishedAt));
+  const todayItems = resolvedItems.filter((item) =>
+    isTodayUtc(item.publishedAt),
+  );
   console.log(
     `Fetched ${resolvedItems.length} articles for ${country}${shouldUseNigeriaFallback ? " using Nigeria fallback" : ""}, ${todayItems.length} published today.`,
   );

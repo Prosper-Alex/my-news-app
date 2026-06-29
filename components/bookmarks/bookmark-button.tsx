@@ -1,14 +1,16 @@
 "use client"
 
-import { signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import type { NewsItem } from "@/types/news"
 import { useBookmarks } from "@/components/bookmarks/bookmarks-provider"
+import { buildSignInUrl } from "@/lib/auth/client"
 
 type BookmarkButtonProps = {
   item: NewsItem
 }
 
 export function BookmarkButton({ item }: BookmarkButtonProps) {
+  const router = useRouter()
   const { state, isBookmarked, add, remove } = useBookmarks()
 
   const saved = isBookmarked(item.url)
@@ -25,10 +27,9 @@ export function BookmarkButton({ item }: BookmarkButtonProps) {
             return
           }
 
-          // If auth is not configured yet, signIn will fail silently; we still
-          // keep the UX straightforward.
           if (state.status === "idle") {
-            await signIn("github")
+            const returnBackUrl = `${window.location.pathname}${window.location.search}`
+            router.push(buildSignInUrl(returnBackUrl))
             return
           }
 
@@ -57,4 +58,3 @@ export function BookmarkButton({ item }: BookmarkButtonProps) {
     </button>
   )
 }
-

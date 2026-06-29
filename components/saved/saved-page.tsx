@@ -1,15 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { signIn, useSession } from "next-auth/react"
 import { useBookmarks } from "@/components/bookmarks/bookmarks-provider"
 import { SiteFrame } from "@/components/site/site-frame"
 import { EmptyState } from "@/components/ui/empty-state"
+import { buildSignInUrl, useAppSession } from "@/lib/auth/client"
 import { createStoryHref, formatStoryDate } from "@/lib/news-utils"
 
 export function SavedPage() {
-  const { status } = useSession()
+  const { status } = useAppSession()
   const bookmarks = useBookmarks()
+  const signInHref = buildSignInUrl("/saved")
 
   return (
     <SiteFrame>
@@ -41,13 +42,12 @@ export function SavedPage() {
               description="Bookmarks sync through your account. Sign in first, then save any story from the homepage or discover page."
               action={
                 <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => signIn("github")}
+                  <Link
+                    href={signInHref}
                     className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-zinc-200"
                   >
                     Sign in
-                  </button>
+                  </Link>
                   <Link
                     href="/discover"
                     className="rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10"
