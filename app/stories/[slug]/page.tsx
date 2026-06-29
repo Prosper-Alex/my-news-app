@@ -1,46 +1,46 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { BookmarkButton } from "@/components/bookmarks/bookmark-button"
-import { SiteFrame } from "@/components/site/site-frame"
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { BookmarkButton } from "@/components/bookmarks/bookmark-button";
+import { SiteFrame } from "@/components/site/site-frame";
 import {
   formatStoryDate,
   getStoryTopicLinks,
   readStoryFromSearchParams,
-} from "@/lib/news-utils"
+} from "@/lib/news-utils";
 
 type StoryPageProps = {
-  params: Promise<{ slug: string }>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export async function generateMetadata({
   searchParams,
 }: StoryPageProps): Promise<Metadata> {
-  const story = await readStoryFromSearchParams(searchParams)
+  const story = await readStoryFromSearchParams(searchParams);
 
   if (!story) {
     return {
       title: "Story Briefing",
       description: "A news briefing built from the current feed.",
-    }
+    };
   }
 
   return {
     title: `${story.title} | Story Briefing`,
     description:
       story.description ?? "A news briefing built from the current feed.",
-  }
+  };
 }
 
 export default async function Page({ searchParams }: StoryPageProps) {
-  const story = await readStoryFromSearchParams(searchParams)
+  const story = await readStoryFromSearchParams(searchParams);
 
   if (!story) {
-    notFound()
+    notFound();
   }
 
-  const topics = getStoryTopicLinks(story)
+  const topics = getStoryTopicLinks(story);
   const storyItem = {
     id: story.url,
     title: story.title,
@@ -54,7 +54,7 @@ export default async function Page({ searchParams }: StoryPageProps) {
     content: story.content ?? null,
     publishedAt: story.publishedAt ?? new Date().toISOString(),
     readTimeMinutes: story.readTimeMinutes ?? 1,
-  }
+  };
 
   return (
     <SiteFrame>
@@ -117,14 +117,12 @@ export default async function Page({ searchParams }: StoryPageProps) {
                   href={story.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-zinc-200"
-                >
+                  className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-zinc-200">
                   Visit publisher
                 </a>
                 <Link
                   href="/discover"
-                  className="inline-flex rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10"
-                >
+                  className="inline-flex rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10">
                   More briefings
                 </Link>
                 <BookmarkButton item={storyItem} />
@@ -132,9 +130,11 @@ export default async function Page({ searchParams }: StoryPageProps) {
             </div>
           </article>
 
-          <aside className="space-y-5">
+          <aside className="space-y-5sticky top-24 xl:top-32">
             <section className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-md">
-              <div className="text-base font-semibold text-white">Publisher</div>
+              <div className="text-base font-semibold text-white">
+                Publisher
+              </div>
               <div className="mt-3 text-sm text-zinc-300">
                 <div className="font-medium text-white">
                   {story.sourceName ?? "Original source"}
@@ -144,15 +144,16 @@ export default async function Page({ searchParams }: StoryPageProps) {
             </section>
 
             <section className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-md">
-              <div className="text-base font-semibold text-white">Topic links</div>
+              <div className="text-base font-semibold text-white">
+                Topic links
+              </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {topics.length ? (
                   topics.map((topic) => (
                     <Link
                       key={topic}
                       href={`/discover?q=${encodeURIComponent(topic)}`}
-                      className="rounded-full border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
-                    >
+                      className="rounded-full border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold text-zinc-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white">
                       {topic}
                     </Link>
                   ))
@@ -165,7 +166,9 @@ export default async function Page({ searchParams }: StoryPageProps) {
             </section>
 
             <section className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm leading-7 text-zinc-300 backdrop-blur-md">
-              <div className="text-base font-semibold text-white">How this page works</div>
+              <div className="text-base font-semibold text-white">
+                How this page works
+              </div>
               <p className="mt-3">
                 This internal page turns a feed item into a quick briefing. It
                 keeps users inside the product longer, then hands off to the
@@ -176,5 +179,5 @@ export default async function Page({ searchParams }: StoryPageProps) {
         </div>
       </section>
     </SiteFrame>
-  )
+  );
 }

@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import type { NewsCategory, NewsItem } from "@/types/news";
 import { useNews } from "@/hooks/use-news";
 import { FeaturedNews } from "@/components/home/featured-news";
-import NewsFeed from "../news/news-feed";
 import { CategoryTabs } from "@/components/home/category-tabs";
 import { Sidebar } from "@/components/home/sidebar";
 import { AskTheNews } from "@/components/home/ask-the-news";
@@ -122,13 +121,12 @@ export function HomePage({ initialItems }: HomePageProps) {
 
             <FeaturedNews items={items} />
 
-            <NewsFeed page={page} onPageChange={setPage} pageSize={pageSize} />
-
             <AskTheNews
-              onAsk={(nextQuery) => {
-                setCategory("all");
+              onAsk={(intent) => {
+                const nextQuery = intent.query ?? "";
+                setCategory(intent.category);
                 setQuery(nextQuery);
-                setSubmittedQuery(nextQuery);
+                setSubmittedQuery(nextQuery || undefined);
                 setPage(1);
               }}
             />

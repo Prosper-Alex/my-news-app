@@ -11,8 +11,6 @@ type NewsCardProps = {
 }
 
 export function NewsCard({ item }: NewsCardProps) {
-  const showReadMore = (item.description?.trim().length ?? 0) > 160
-
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-5 shadow-sm backdrop-blur-md transition duration-200 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/10 hover:shadow-[0_18px_50px_-25px_rgba(56,189,248,0.55)]">
       <div className="mb-4 overflow-hidden rounded-2xl ring-1 ring-white/10">
@@ -40,19 +38,9 @@ export function NewsCard({ item }: NewsCardProps) {
       </h3>
 
       {item.description ? (
-        <div className="mt-2">
-          <p className="line-clamp-3 text-sm leading-6 text-zinc-200">
-            {item.description}
-          </p>
-          {showReadMore ? (
-            <Link
-              href={createStoryHref(item)}
-              className="mt-2 inline-flex text-xs font-semibold text-zinc-200 underline-offset-4 hover:text-white hover:underline"
-            >
-              Open briefing
-            </Link>
-          ) : null}
-        </div>
+        <p className="mt-2 line-clamp-3 text-sm leading-6 text-zinc-200">
+          {item.description}
+        </p>
       ) : (
         <p className="mt-2 line-clamp-3 text-sm leading-6 text-zinc-400">
           No description available.

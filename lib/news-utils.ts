@@ -20,6 +20,10 @@ type StorySearchParams =
 
 const topicStopWords = new Set([
   "the",
+  "that",
+  "this",
+  "these",
+  "those",
   "a",
   "an",
   "and",
@@ -47,6 +51,10 @@ const topicStopWords = new Set([
   "into",
   "about",
   "amid",
+  "over",
+  "when",
+  "where",
+  "while",
 ]);
 
 function cleanText(value?: string | null) {

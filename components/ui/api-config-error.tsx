@@ -60,7 +60,7 @@ export function ApiConfigError({
 
       <div className="space-y-2 border-t border-amber-500/20 pt-4 text-xs text-amber-50/60">
         <p>
-          <strong className="text-amber-200">See:</strong> .env.example for
+          <strong className="text-amber-200">See:</strong> .env for
           configuration template
         </p>
       </div>

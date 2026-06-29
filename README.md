@@ -5,7 +5,7 @@ Production-ready news SaaS starter built with Next.js (App Router), TypeScript, 
 ### 1. Setup Environment Variables
 
 ```bash
-cp .env.example .env
+touch .env
 ```
 
 Edit `.env` and add your keys:

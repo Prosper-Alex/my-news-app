@@ -73,7 +73,7 @@ function buildNigeriaFallbackUrl(params: {
   };
 
   const query =
-    params.query?.trim() ||
+    expandNigeriaQuery(params.query) ||
     (params.category?.trim()
       ? (fallbackCategoryQueries[params.category.trim()] ?? "")
       : "");
@@ -83,6 +83,24 @@ function buildNigeriaFallbackUrl(params: {
   }
 
   return url;
+}
+
+function expandNigeriaQuery(query?: string): string {
+  const trimmed = query?.trim();
+  if (!trimmed) return "";
+
+  if (/\b(ai|a\.i\.|artificial intelligence)\b/i.test(trimmed)) {
+    return [
+      trimmed,
+      "\"artificial intelligence\"",
+      "\"machine learning\"",
+      "technology",
+      "startup",
+      "fintech",
+    ].join(" OR ");
+  }
+
+  return trimmed;
 }
 
 function toNewsItem(article: NewsApiArticle): NewsItem {
@@ -121,11 +139,22 @@ async function fetchNewsItems(
   revalidate: number,
 ): Promise<NewsItem[]> {
   const isDev = process.env.NODE_ENV !== "production";
-  const res = await fetch(url, {
-    headers: { "X-Api-Key": apiKey },
-    cache: isDev ? "no-store" : "force-cache",
-    next: isDev ? undefined : { revalidate },
-  });
+  let res: Response;
+
+  try {
+    res = await fetch(url, {
+      headers: { "X-Api-Key": apiKey },
+      cache: isDev ? "no-store" : "force-cache",
+      next: isDev ? undefined : { revalidate },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new NewsApiError(
+      503,
+      `Could not reach NewsAPI right now. ${message}`,
+      "network_error",
+    );
+  }
 
   const data = (await res.json()) as NewsApiResponse;
 

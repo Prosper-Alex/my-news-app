@@ -1,5 +1,4 @@
 import { getCurrentUser } from "@/lib/auth";
-import type { NextRequest } from "next/server";
 /**
  * Protected API Route: GET /api/user
  * Returns the current user's information
@@ -49,7 +48,7 @@ export async function GET() {
  * Updates user preferences
  * Requires active authentication session
  */
-export async function PUT(request: NextRequest) {
+export async function PUT() {
   try {
     const user = await getCurrentUser();
 
@@ -63,33 +62,13 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-
-    // Validate request body
-    if (!body || typeof body !== "object") {
-      return Response.json(
-        {
-          error: "Bad Request",
-          message: "Invalid request body",
-        },
-        { status: 400 },
-      );
-    }
-
-    // In a real app, you'd update the database here
-    // For now, we'll just return a success response
     return Response.json(
       {
-        message: "User preferences updated successfully",
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-        },
-        // Echo back the preferences that would be saved
-        preferences: body,
+        error: "Not Implemented",
+        message:
+          "User preference updates are not available yet because no persistence model exists.",
       },
-      { status: 200 },
+      { status: 501 },
     );
   } catch (error) {
     console.error("PUT /api/user failed:", error);
